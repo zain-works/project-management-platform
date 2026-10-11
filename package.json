@@ -1,0 +1,30 @@
+{
+  "name": "project-management-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-minded Project Management Platform using MVC + Event-Driven Architecture",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@pmp/api",
+    "dev:all": "concurrently \"npm run dev --workspace=@pmp/api\" \"npm run dev --workspace=@pmp/web\"",
+    "dev:api": "npm run dev --workspace=@pmp/api",
+    "dev:web": "npm run dev --workspace=@pmp/web",
+    "build": "npm run build --workspace=@pmp/shared && npm run build --workspace=@pmp/api && npm run build --workspace=@pmp/web",
+    "test": "npm run test --workspace=@pmp/api && npm run test --workspace=@pmp/web",
+    "lint": "eslint .",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "tsx prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "concurrently": "^9.1.0",
+    "prisma": "^6.4.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
