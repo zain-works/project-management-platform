@@ -34,8 +34,8 @@ export const OnboardingPage: React.FC = () => {
       setError(null);
       const res = await api.workspaces.create({ name: workspaceName.trim() });
       setCreatedWorkspace(res.workspace);
-      // Don't call refreshWorkspaces() here as it might cause a redirect
-      // switchWorkspace(res.workspace);
+      await refreshWorkspaces();
+      switchWorkspace(res.workspace);
       setStep(2);
     } catch (err: any) {
       setError(err.message || 'Failed to create workspace. Please try again.');

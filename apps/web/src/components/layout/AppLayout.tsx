@@ -29,14 +29,8 @@ export const AppLayout: React.FC = () => {
   }
 
   // If user has no workspaces, redirect to onboarding wizard!
-  // Don't redirect if user is on onboarding page even after creating a workspace
   if (workspaces.length === 0 && location.pathname !== '/app/onboarding') {
     return <Navigate to="/app/onboarding" replace />;
-  }
-
-  // Don't auto-redirect from onboarding to dashboard - let user complete the flow
-  if (location.pathname === '/app/onboarding') {
-    return <Outlet />;
   }
 
   return (
