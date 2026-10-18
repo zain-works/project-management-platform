@@ -52,9 +52,15 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
       } else {
         setCurrentWorkspace(null);
       }
-    } catch {
-      setWorkspaces([]);
-      setCurrentWorkspace(null);
+    } catch (err) {
+      // Only clear workspaces if this is a 401 (auth error) or 403 (forbidden)
+      // For other errors (network, server), keep existing workspaces to avoid false redirects
+      const apiError = err as any;
+      if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+        setWorkspaces([]);
+        setCurrentWorkspace(null);
+      }
+      // For other errors, we'll keep the current state and let the user retry
     } finally {
       setIsLoadingWorkspaces(false);
     }

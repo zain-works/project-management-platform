@@ -58,7 +58,9 @@ export const mailer = {
         });
         logger.info(`Email sent via SMTP to ${options.to}: "${options.subject}"`);
       } catch (err: unknown) {
-        logger.error(`Failed to send email via SMTP to ${options.to}`, { error: String(err) });
+        logger.error(`Failed to send email via SMTP to ${options.to}`, { error: String(err), subject: options.subject });
+        // Don't throw - we want to continue even if email fails
+        // The email is still captured in the dev mailbox for inspection
       }
     } else {
       logger.info(`[Dev Mailbox] Captured email for ${options.to}: "${options.subject}"`);

@@ -1,9 +1,8 @@
-import { prisma } from '../config/database.js';
 import { workspaceRepository } from '../repositories/WorkspaceRepository.js';
 import { projectRepository } from '../repositories/ProjectRepository.js';
+import { taskRepository } from '../repositories/TaskRepository.js';
 import { notificationRepository } from '../repositories/NotificationRepository.js';
 import { activityLogRepository } from '../repositories/ActivityLogRepository.js';
-import { TaskStatus } from '@pmp/shared';
 
 export class DashboardService {
   async getDashboardData(workspaceId: string, userId: string) {
@@ -18,77 +17,19 @@ export class DashboardService {
     const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
     // 1. User Assigned Tasks in this Workspace
-    const assignedTasks = await prisma.task.findMany({
-      where: {
-        assigneeId: userId,
-        project: { workspaceId },
-        status: { not: TaskStatus.DONE },
-      },
-      include: {
-        project: { select: { id: true, name: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-      take: 10,
-    });
+    const assignedTasks = await taskRepository.findAssignedUncompleted(userId, workspaceId, 10);
 
     // 2. Tasks Due Soon (next 3 days, across workspace)
-    const dueSoonTasks = await prisma.task.findMany({
-      where: {
-        project: { workspaceId },
-        status: { not: TaskStatus.DONE },
-        dueDate: {
-          gte: now,
-          lte: threeDaysFromNow,
-        },
-      },
-      include: {
-        project: { select: { id: true, name: true } },
-        assignee: { select: { id: true, name: true, avatarUrl: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-      take: 5,
-    });
+    const dueSoonTasks = await taskRepository.findDueSoonWorkspace(workspaceId, now, threeDaysFromNow, 5);
 
     // 3. Overdue Tasks (across workspace)
-    const overdueTasks = await prisma.task.findMany({
-      where: {
-        project: { workspaceId },
-        status: { not: TaskStatus.DONE },
-        dueDate: {
-          lt: now,
-        },
-      },
-      include: {
-        project: { select: { id: true, name: true } },
-        assignee: { select: { id: true, name: true, avatarUrl: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-      take: 5,
-    });
+    const overdueTasks = await taskRepository.findOverdueWorkspace(workspaceId, now, 5);
 
-    // 4. Overdue count & Assigned count
+    // 4. Counts
     const [assignedCount, dueSoonCount, overdueCount] = await Promise.all([
-      prisma.task.count({
-        where: {
-          assigneeId: userId,
-          project: { workspaceId },
-          status: { not: TaskStatus.DONE },
-        },
-      }),
-      prisma.task.count({
-        where: {
-          project: { workspaceId },
-          status: { not: TaskStatus.DONE },
-          dueDate: { gte: now, lte: threeDaysFromNow },
-        },
-      }),
-      prisma.task.count({
-        where: {
-          project: { workspaceId },
-          status: { not: TaskStatus.DONE },
-          dueDate: { lt: now },
-        },
-      }),
+      taskRepository.countAssignedUncompleted(userId, workspaceId),
+      taskRepository.countDueSoonWorkspace(workspaceId, now, threeDaysFromNow),
+      taskRepository.countOverdueWorkspace(workspaceId, now),
     ]);
 
     // 5. Recent Projects with Progress %
@@ -131,31 +72,8 @@ export class DashboardService {
     const trimmed = query.trim();
 
     const [projects, tasks] = await Promise.all([
-      prisma.project.findMany({
-        where: {
-          workspaceId,
-          archivedAt: null,
-          OR: [
-            { name: { contains: trimmed, mode: 'insensitive' } },
-            { description: { contains: trimmed, mode: 'insensitive' } },
-          ],
-        },
-        take: 10,
-      }),
-      prisma.task.findMany({
-        where: {
-          project: { workspaceId },
-          OR: [
-            { title: { contains: trimmed, mode: 'insensitive' } },
-            { description: { contains: trimmed, mode: 'insensitive' } },
-          ],
-        },
-        include: {
-          project: { select: { id: true, name: true } },
-          assignee: { select: { id: true, name: true, avatarUrl: true } },
-        },
-        take: 20,
-      }),
+      projectRepository.searchInWorkspace(workspaceId, trimmed, 10),
+      taskRepository.searchInWorkspace(workspaceId, trimmed, 20),
     ]);
 
     return { projects, tasks };

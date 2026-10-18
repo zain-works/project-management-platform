@@ -152,14 +152,16 @@ export class WorkspaceService {
       throw error;
     }
 
-    // Add user as member
+    // Add user as member if not already a member
     const existingMember = await workspaceRepository.findMember(invitation.workspaceId, userId);
     if (!existingMember) {
       await workspaceRepository.addMember(invitation.workspaceId, userId, invitation.role);
     }
 
+    // Mark invitation as accepted
     await workspaceRepository.markInvitationAccepted(invitation.id);
 
+    // Dispatch event for notifications/activity logging
     const event = createDomainEvent('WorkspaceMemberJoined', {
       workspaceId: invitation.workspaceId,
       userId,

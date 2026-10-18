@@ -27,25 +27,10 @@ export const LoginPage: React.FC = () => {
       setIsLoading(true);
       setError(null);
       await login({ email, password, rememberMe });
-      // Check if user has workspaces, if not go to onboarding
+      // Navigate to /app - AppLayout will handle workspace check and redirect appropriately
       navigate('/app', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setEmail(demoEmail);
-      setPassword('Password123!');
-      await login({ email: demoEmail, password: 'Password123!', rememberMe: true });
-      navigate('/app', { replace: true });
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in with demo account');
     } finally {
       setIsLoading(false);
     }
@@ -141,46 +126,6 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Quick Demo Access Buttons */}
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <span className="block text-center text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">
-              Fast Demo Accounts (Password123!)
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('alex.owner@example.com')}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-center hover:bg-slate-100 transition-colors"
-              >
-                <div className="text-xs font-bold text-slate-800 truncate">Alex</div>
-                <div className="text-[10px] text-purple-700 font-medium">Owner</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('sarah.admin@example.com')}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-center hover:bg-slate-100 transition-colors"
-              >
-                <div className="text-xs font-bold text-slate-800 truncate">Sarah</div>
-                <div className="text-[10px] text-indigo-700 font-medium">Admin</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('marcus.pm@example.com')}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-center hover:bg-slate-100 transition-colors"
-              >
-                <div className="text-xs font-bold text-slate-800 truncate">Marcus</div>
-                <div className="text-[10px] text-blue-700 font-medium">PM</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('elena.dev@example.com')}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-2 text-center hover:bg-slate-100 transition-colors"
-              >
-                <div className="text-xs font-bold text-slate-800 truncate">Elena</div>
-                <div className="text-[10px] text-slate-600 font-medium">Member</div>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -199,6 +199,105 @@ export class TaskRepository {
       },
     });
   }
+
+  async findAssignedUncompleted(userId: string, workspaceId: string, limit = 10) {
+    return prisma.task.findMany({
+      where: {
+        assigneeId: userId,
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+      take: limit,
+    });
+  }
+
+  async findDueSoonWorkspace(workspaceId: string, fromDate: Date, toDate: Date, limit = 5) {
+    return prisma.task.findMany({
+      where: {
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+        dueDate: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        assignee: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+      take: limit,
+    });
+  }
+
+  async findOverdueWorkspace(workspaceId: string, beforeDate: Date, limit = 5) {
+    return prisma.task.findMany({
+      where: {
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+        dueDate: {
+          lt: beforeDate,
+        },
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        assignee: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { dueDate: 'asc' },
+      take: limit,
+    });
+  }
+
+  async countAssignedUncompleted(userId: string, workspaceId: string): Promise<number> {
+    return prisma.task.count({
+      where: {
+        assigneeId: userId,
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+      },
+    });
+  }
+
+  async countDueSoonWorkspace(workspaceId: string, fromDate: Date, toDate: Date): Promise<number> {
+    return prisma.task.count({
+      where: {
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+        dueDate: { gte: fromDate, lte: toDate },
+      },
+    });
+  }
+
+  async countOverdueWorkspace(workspaceId: string, beforeDate: Date): Promise<number> {
+    return prisma.task.count({
+      where: {
+        project: { workspaceId },
+        status: { not: TaskStatus.DONE },
+        dueDate: { lt: beforeDate },
+      },
+    });
+  }
+
+  async searchInWorkspace(workspaceId: string, query: string, limit = 20) {
+    return prisma.task.findMany({
+      where: {
+        project: { workspaceId },
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        assignee: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      take: limit,
+    });
+  }
 }
 
 export const taskRepository = new TaskRepository();

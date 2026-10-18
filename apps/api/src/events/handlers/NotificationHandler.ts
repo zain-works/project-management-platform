@@ -20,9 +20,9 @@ export async function handleTaskAssignedNotification(event: BaseDomainEvent<Task
       resourceType: 'task',
       resourceId: taskId,
     });
-    logger.info(`Notification created for user ${newAssigneeId}: Task Assigned`, { taskId });
+    logger.info(`Notification created for user ${newAssigneeId}: Task Assigned`, { taskId, newAssigneeId });
   } catch (err) {
-    logger.error('Failed to create TaskAssigned notification', { error: String(err) });
+    logger.error('Failed to create TaskAssigned notification', { error: String(err), taskId, newAssigneeId });
   }
 }
 
@@ -31,7 +31,10 @@ export async function handleTaskStatusChangedNotification(event: BaseDomainEvent
 
   try {
     const task = await taskRepository.findById(taskId);
-    if (!task) return;
+    if (!task) {
+      logger.warn('Task not found for status change notification', { taskId });
+      return;
+    }
 
     // Recipients: Creator and Assignee, excluding the person who made the change
     const recipients = new Set<string>();
@@ -52,8 +55,9 @@ export async function handleTaskStatusChangedNotification(event: BaseDomainEvent
         resourceId: taskId,
       });
     }
+    logger.info(`TaskStatusChanged notifications created`, { taskId, recipientCount: recipients.size });
   } catch (err) {
-    logger.error('Failed to create TaskStatusChanged notification', { error: String(err) });
+    logger.error('Failed to create TaskStatusChanged notification', { error: String(err), taskId });
   }
 }
 
@@ -62,7 +66,10 @@ export async function handleCommentAddedNotification(event: BaseDomainEvent<Comm
 
   try {
     const task = await taskRepository.findById(taskId);
-    if (!task) return;
+    if (!task) {
+      logger.warn('Task not found for comment notification', { taskId });
+      return;
+    }
 
     const recipients = new Set<string>();
     if (task.createdById && task.createdById !== authorId) {
@@ -82,7 +89,8 @@ export async function handleCommentAddedNotification(event: BaseDomainEvent<Comm
         resourceId: taskId,
       });
     }
+    logger.info(`CommentAdded notifications created`, { taskId, recipientCount: recipients.size });
   } catch (err) {
-    logger.error('Failed to create CommentAdded notification', { error: String(err) });
+    logger.error('Failed to create CommentAdded notification', { error: String(err), taskId });
   }
 }
