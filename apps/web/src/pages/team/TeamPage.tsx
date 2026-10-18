@@ -47,8 +47,10 @@ export const TeamPage: React.FC = () => {
     try {
       if (currentWorkspace) {
         const response = await api.workspaces.listMembers(currentWorkspace.id);
-        // Assuming response.data or response is the array
-        setMembers(Array.isArray(response) ? response : (response.data || []));
+        const list = Array.isArray(response)
+          ? response
+          : (response.members || response.data || []);
+        setMembers(list);
       }
     } catch (error) {
       console.error('Failed to load members', error);

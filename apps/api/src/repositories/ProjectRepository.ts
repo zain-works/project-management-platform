@@ -199,6 +199,20 @@ export class ProjectRepository {
       },
     });
   }
+
+  async searchInWorkspace(workspaceId: string, query: string, limit = 10) {
+    return prisma.project.findMany({
+      where: {
+        workspaceId,
+        archivedAt: null,
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      take: limit,
+    });
+  }
 }
 
 export const projectRepository = new ProjectRepository();

@@ -35,7 +35,11 @@ export const DashboardPage: React.FC = () => {
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
 
   const fetchDashboard = async () => {
-    if (!currentWorkspace) return;
+    if (!currentWorkspace) {
+      setError('No workspace selected. Please select a workspace to view the dashboard.');
+      setIsLoading(false);
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
@@ -49,7 +53,11 @@ export const DashboardPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    if (currentWorkspace) {
+      fetchDashboard();
+    } else {
+      setIsLoading(false);
+    }
   }, [currentWorkspace]);
 
   if (isLoading) {

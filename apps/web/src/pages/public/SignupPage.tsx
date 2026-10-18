@@ -42,13 +42,16 @@ export const SignupPage: React.FC = () => {
       if (invitationToken) {
         try {
           await api.workspaces.acceptInvitation(invitationToken);
+          // User joined a workspace via invitation, go to dashboard
+          navigate('/app', { replace: true });
+          return;
         } catch {
-          // ignore invite error
+          // If invitation fails, proceed to onboarding
         }
       }
 
-      // Navigate to onboarding wizard or app
-      navigate('/app/onboarding');
+      // Navigate to onboarding wizard for new users without invitations
+      navigate('/app/', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {

@@ -13,6 +13,7 @@ export const AppLayout: React.FC = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
 
+  // Show loading state while authenticating or loading workspaces
   if (isLoading || isLoadingWorkspaces) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
@@ -24,11 +25,13 @@ export const AppLayout: React.FC = () => {
     );
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If user has no workspaces, redirect to onboarding wizard!
+  // If user has no workspaces (and we're not already on onboarding page), redirect to onboarding
+  // This check only happens after loading is complete, so we know the array is accurate
   if (workspaces.length === 0 && location.pathname !== '/app/onboarding') {
     return <Navigate to="/app/onboarding" replace />;
   }
